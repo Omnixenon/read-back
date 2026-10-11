@@ -1,0 +1,9 @@
+{
+  "name": "read-back",
+  "description": "Read your prompt back to you, intent and direction, before any work starts",
+  "version": "0.1.0",
+  "author": { "name": "Omnixenon", "url": "https://github.com/Omnixenon" },
+  "homepage": "https://github.com/Omnixenon/read-back",
+  "repository": "https://github.com/Omnixenon/read-back",
+  "license": "MIT"
+}

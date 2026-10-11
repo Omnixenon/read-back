@@ -1,0 +1,13 @@
+{
+  "name": "read-back",
+  "description": "read-back: the agent says what it heard before it builds",
+  "owner": { "name": "Omnixenon", "url": "https://github.com/Omnixenon" },
+  "plugins": [
+    {
+      "name": "read-back",
+      "source": "./",
+      "description": "Read your prompt back to you, intent and direction, before any work starts",
+      "category": "productivity"
+    }
+  ]
+}

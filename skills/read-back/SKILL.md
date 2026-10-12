@@ -34,7 +34,7 @@ Under 15 lines, 17 with **Extending**; a cumulative read-back may exceed that, b
 **From earlier context** — <pending read-back asks carried forward, plus anything else borrowed, or "nothing">
 **Unclear** — <each gap + the reading you'd default to>   (omit if none)
 
-Go, or correct me?
+Go, correct me, or cancel?
 ```
 
 ## After

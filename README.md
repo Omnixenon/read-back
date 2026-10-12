@@ -35,7 +35,7 @@ And the read-back:
 > **From earlier context** — nothing<br>
 > **Unclear** — "reddish client" read as "Redis client". Requests with no API key: I'd limit them by IP at the same rate.
 >
-> Go, or correct me?
+> Go, correct me, or cancel?
 
 The agent flags the misheard word instead of guessing. It treats your two exemptions as examples of a pattern and proposes more of the same kind. You see all of this before any code exists.
 

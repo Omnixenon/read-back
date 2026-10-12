@@ -1,4 +1,4 @@
-// `bun run gate`: tests → tree → skills → plugin → caps, stopping at the first red stage.
+// `bun run gate`: tests → tree → skills → plugin → docs → version → caps, stopping at the first red stage.
 // `bun scripts/gate.ts --staged` (pre-commit): the same audits, read from the index being committed.
 import { spawnSync } from "bun";
 import { existsSync, lstatSync, readFileSync, readlinkSync } from "node:fs";
@@ -82,6 +82,32 @@ export function pluginFaults(read: (f: string) => string): string[] {
   return names.filter((n) => n !== plugin.name).map((n) => `.claude-plugin/marketplace.json: plugin "${n}" isn't plugin.json's name "${plugin.name}"`);
 }
 
+/**
+ * The README features the skill as it ships: every reply SKILL.md's ## After takes (its `- **…**` terms) is named in bold in the README,
+ * and the README's example read-back carries each section of SKILL.md's format block and ends on its closing line.
+ */
+export function docsFaults(skill: string, readme: string): string[] {
+  const out: string[] = [];
+  const after = /^## After\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(skill)?.[1] ?? "";
+  const replies = [...after.matchAll(/^- \*\*(.+?)\*\*/gm)].map((m) => m[1]!.replace(/\*\*/g, ""));
+  if (!replies.length) out.push("skills/read-back/SKILL.md: no `- **reply**` lines under ## After");
+  const lower = readme.toLowerCase();
+  for (const r of replies) if (!lower.includes(`${r.toLowerCase()}**`)) out.push(`README.md: never names **${r}** in bold, a reply SKILL.md's ## After takes`);
+  const block = /^## Format[\s\S]*?^```\n([\s\S]*?)^```/m.exec(skill)?.[1] ?? "";
+  const sections = [...block.matchAll(/^\*\*(.+?)\*\*/gm)].map((m) => m[1]!);
+  const closing = block.trimEnd().split("\n").at(-1)?.trim() ?? "";
+  if (!closing) out.push("skills/read-back/SKILL.md: no format block under ## Format");
+  const example = readme.split("\n").filter((l) => l.startsWith(">")).map((l) => l.replace(/^>\s?/, "")).join("\n");
+  for (const h of sections) if (!example.includes(`**${h}**`)) out.push(`README.md: the example read-back has no **${h}** section, which SKILL.md's format has`);
+  if (closing && example.trimEnd().split("\n").at(-1)?.trim() !== closing) out.push(`README.md: the example read-back doesn't end on "${closing}", SKILL.md's closing line`);
+  return out;
+}
+
+/** A commit that changes a SKILL.md bumps plugin.json's version, or installed plugins never see the change. */
+export function versionFaults(skillChanged: boolean, version: string | undefined, was: string | undefined): string[] {
+  return skillChanged && was !== undefined && version === was ? [`.claude-plugin/plugin.json: version ${version} unchanged though a SKILL.md changed; bump it`] : [];
+}
+
 export type Caps = Record<string, number>;
 /** Lines per capped file (by cap key); a cap missing is a fault, and (against `was`, HEAD's caps) one raised is too. */
 export function capFaults(caps: Caps, was: Caps | undefined, capped: Record<string, string[]>, read: (f: string) => string): string[] {
@@ -118,9 +144,9 @@ export function audit(staged: boolean): [string, string[]][] {
   const treeOut = treeFaults(tree);
   if (existsSync(join(ROOT, ".github/workflows"))) treeOut.push(".github/workflows: no hosted CI; the gate is local (.githooks)");
   if (!staged && !(lstatSync(join(ROOT, "CLAUDE.md"), { throwIfNoEntry: false })?.isSymbolicLink() && readlinkSync(join(ROOT, "CLAUDE.md")) === "AGENTS.md")) treeOut.push("CLAUDE.md: must be a symlink to AGENTS.md");
-  const parse = (s: string | undefined) => {
+  const parse = (s: string | undefined, key?: string) => {
     try {
-      return s ? (JSON.parse(s) as Caps) : undefined;
+      return s ? (key ? JSON.parse(s)[key] : (JSON.parse(s) as Caps)) : undefined;
     } catch {}
   };
   const caps = parse(read("scripts/caps.json"));
@@ -129,6 +155,12 @@ export function audit(staged: boolean): [string, string[]][] {
     ["tree", treeOut],
     ["skills", skills.length ? skills.flatMap((f) => skillFaults(f.split("/")[1]!, read(f))) : ["skills/: no <name>/SKILL.md"]],
     ["plugin", pluginFaults(read)],
+    ["docs", docsFaults(read("skills/read-back/SKILL.md"), read("README.md"))],
+    ["version", versionFaults(
+      lines(git("diff", ...(staged ? ["--cached"] : ["HEAD"]), "--name-only", "--", "skills/")).length > 0,
+      parse(read(".claude-plugin/plugin.json"), "version"),
+      parse(git("show", "HEAD:.claude-plugin/plugin.json"), "version"),
+    )],
     ["caps", caps ? capFaults(caps, parse(git("show", "HEAD:scripts/caps.json")), capped, read) : ["scripts/caps.json: missing or not JSON"]],
   ];
 }

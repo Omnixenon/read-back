@@ -8,7 +8,7 @@ Give a **read-back** of my prompt, the way a pilot reads back a clearance: say w
 
 **The prompt** is the text after `/read-back`. If there is none, it is my last message before the command.
 
-**Pending read-backs.** Every read-back since my last **Go** is still open. A new read-back merges all of them with the new prompt into one cumulative read-back — I never have to ask for "everything". Where the new prompt conflicts with a pending ask, the new prompt wins and you flag the replaced item under **Unclear**. A **Go** closes the chain; the next read-back starts fresh.
+**Pending read-backs.** Every read-back since my last **Go** is still open. A new read-back merges all of them with the new prompt into one cumulative read-back — I never have to ask for "everything". Where the new prompt conflicts with a pending ask, the new prompt wins and you flag the replaced item under **Unclear**. A **Go** or a **Cancel** closes the chain; the next read-back starts fresh.
 
 ## Building it
 
@@ -42,3 +42,5 @@ Go, or correct me?
 - **Go** → execute exactly the confirmed read-back, **Extending** items included; carry each seed's direction through the work.
 - **Go, without extending** → execute it with the seeds kept as I said them; skip **Extending**.
 - **Correction** or another `/read-back` → issue a fresh cumulative read-back with it folded in.
+- **Cancel** (or "scrap", "start over") → drop every pending read-back and execute nothing; confirm in one line.
+- **Cancel, keep the prompt** → drop your reading and issue a fresh read-back of my latest prompt alone.

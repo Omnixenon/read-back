@@ -48,15 +48,17 @@ Then reply with one of:
 - **Go**: the agent does exactly what the read-back says, including the Extending items.
 - **Go, without extending**: same, but your examples stay as you wrote them.
 - **A correction**: the agent folds it in and gives you a fresh read-back.
+- **Cancel**: the agent drops the read-back and does nothing. "Scrap" and "start over" work too.
+- **Cancel, keep the prompt**: the agent throws away its reading and reads back your latest prompt again from scratch.
 
-Read-backs stack. If you send another `/read-back` before saying Go, the new one merges everything still open into one list, and flags anything you changed. Saying Go closes the chain, and the next read-back starts fresh.
+Read-backs stack. If you send another `/read-back` before saying Go, the new one merges everything still open into one list, and flags anything you changed. Saying Go or Cancel closes the chain, and the next read-back starts fresh.
 
 You type `/read-back` everywhere. Claude Code namespaces plugin skills, so if you installed it as a plugin the command list may show it as `/read-back:read-back`.
 
 ## What it won't do
 
 - Read files, run searches or edit anything while building the read-back. It works only from your prompt. A reference it can't resolve without looking goes under Unclear.
-- Start work before you say Go.
+- Start work before you say Go, or after you say Cancel.
 - Run on its own. It only runs when you type the command.
 
 ## Install
